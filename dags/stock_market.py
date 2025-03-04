@@ -5,7 +5,7 @@ from airflow.sensors.base import PokeReturnValue
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 
-from include.stock_market.tasks import _get_stock_prices
+from include.stock_market.tasks import _get_stock_prices, _store_prices
 
 # astro dev run tasks test <dag id> <task id> <year-month-day>
 
@@ -31,7 +31,7 @@ def stock_market():
         print(url)
 
         response = requests.get(url, headers=api.extra_dejson['headers'])
-        
+
         # tells if API is available (when is None)
         condition = response.json()['finance']['result'] is None
         return PokeReturnValue(is_done=condition, xcom_value=url)
@@ -45,7 +45,13 @@ def stock_market():
         # url is templated with {{<value>}}, this means the value is only evaluated when it is ran
         op_kwargs = {'url': '{{ ti.xcom_pull(task_ids="is_api_available") }}', 'symbol': SYMBOL}
     )
+
+    store_prices = PythonOperator(
+        task_id = 'store_prices',
+        python_callable = _store_prices,
+        op_kwargs = {'stock': '{{ ti.xcom_pull(task_ids="get_stock_prices") }}'}
+    )
     
-    is_api_available() >> get_stock_prices
+    is_api_available() >> get_stock_prices >> store_prices
 
 stock_market()
