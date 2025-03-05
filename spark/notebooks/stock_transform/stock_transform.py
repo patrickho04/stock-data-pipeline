@@ -1,13 +1,8 @@
-# README:
-# SPARK_APPLICATION_ARGS contains stock-market/AAPL/prices.json
-# SPARK_APPLICATION_ARGS will be passed to the Spark application as an argument -e when running the Spark application from Airflow
-# - Sometimes the script can stay stuck after "Passing arguments..."
-# - Sometimes the script can stay stuck after "Successfully stopped SparkContext"
-# - Sometimes the script can show "WARN TaskSchedulerImpl: Initial job has not accepted any resources; check your cluster UI to ensure that workers are registered and have sufficient resources"
-# The easiest way to solve that is to restart your Airflow instance
-# astro dev kill && astro dev start
-# Also, make sure you allocated at least 8gb of RAM to Docker Desktop
-# Go to Docker Desktop -> Preferences -> Resources -> Advanced -> Memory
+"""
+Use Docker to encapsulate all dependencies required for Spark to work.
+This is done to prevent mixing with Airflow dependencies.
+Airflow DockOperator is required to run this.
+"""
 
 # Import the SparkSession module
 from pyspark.sql import SparkSession
@@ -35,6 +30,7 @@ if __name__ == '__main__':
 
         # Read a JSON file from an MinIO bucket using the access key, secret key, 
         # and endpoint configured above
+        # Grab value from stored_prices (stock-market/NVDA) with os.getenv('SPARK_APPLICATION_ARGS')
         df = spark.read.option("header", "false") \
             .json(f"s3a://{os.getenv('SPARK_APPLICATION_ARGS')}/prices.json")
 

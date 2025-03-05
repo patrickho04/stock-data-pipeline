@@ -32,6 +32,7 @@ def _store_prices(stock):
     # convert json into Python dictionary just to grab symbol
     stock = json.loads(stock)
     symbol = stock['meta']['symbol']
+    # turn Python dictionary back into json
     data = json.dumps(stock, ensure_ascii=False).encode('utf8')
     objw = client.put_object(
         bucket_name = bucket_name,
