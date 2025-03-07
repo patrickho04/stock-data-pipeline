@@ -6,7 +6,7 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from datetime import datetime
 
-from include.stock_market.tasks import _get_stock_prices, _store_prices
+from include.stock_market.tasks import _get_stock_prices, _store_prices, _get_formatted_csv
 
 # astro dev run tasks test <dag id> <task id> <year-month-day>
 
@@ -70,6 +70,12 @@ def stock_market():
         }
     )
     
-    is_api_available() >> get_stock_prices >> store_prices >> format_prices
+    get_formatted_csv = PythonOperator(
+        task_id = 'get_formatted_csv',
+        python_callable = _get_formatted_csv,
+        op_kwargs = {'path': '{{ ti.xcom_pull(task_ids="store_prices") }}'}
+    )
+    
+    is_api_available() >> get_stock_prices >> store_prices >> format_prices >> get_formatted_csv
 
 stock_market()
