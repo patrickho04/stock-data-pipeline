@@ -1,3 +1,6 @@
+# Overrides default docker-compose, allowing more configurations which are needed for Docker containers to communicate
+# For example, look at scheduler/networks, this is the network that lets all these containers interact
+
 version: "3.1"
 services:
 

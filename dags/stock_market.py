@@ -56,6 +56,11 @@ def stock_market():
         op_kwargs = {'stock': '{{ ti.xcom_pull(task_ids="get_stock_prices") }}'}
     )
 
+    """
+        You can find all the data in Docker desktop.
+        Go to postgres container => exec => /bin/bash => psql -Upostgres => SELECT * FROM stock_market;
+    """
+
     # json to csv
     format_prices = DockerOperator(
         task_id = 'format_prices',
@@ -99,13 +104,8 @@ def stock_market():
         load_options = {
             "aws_access_key_id": BaseHook.get_connection('minio').login,
             "aws_secret_access_key": BaseHook.get_connection('minio').password,
-            "endpoint_url": BaseHook.get_connection('minio').host
+            "endpoint_url": BaseHook.get_connection('minio').host,
         }
-
-        """
-        You can find all the data in Docker desktop.
-        Go to postgres container => exec => /bin/bash => psql -Upostgres => SELECT * FROM stock_market;
-        """
     )
     
     is_api_available() >> get_stock_prices >> store_prices >> format_prices >> get_formatted_csv >> load_to_dw
